@@ -1,6 +1,8 @@
 ## ASCII Art Generator
 A simple ASCII art generator application writen in C. It accepts BMP format image as input and creates ASCII art and stores in a text file. It's written just for fun and to understand the BMP file format.
 
+![Output ASCII Art](rose_ascii.png)
+
 ### Compile & Run
     gcc ascii_art_gen.c -o ascii_app
     ./ascii_app
@@ -29,3 +31,4 @@ A lot of limitations :)
 - BMP file format: https://en.wikipedia.org/wiki/BMP_file_format
 - BMP image converter (suitable for this application): https://online-converting.com/image/convert2bmp/
 - Awesome web-based ASCII art generator: https://manytools.org/hacker-tools/convert-images-to-ascii-art/
+- Calculate scaling factor retaining aspect ratio: https://stackoverflow.com/questions/6565703/math-algorithm-fit-image-to-screen-retain-aspect-ratio
