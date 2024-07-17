@@ -32,3 +32,5 @@ A lot of limitations :)
 - BMP image converter (suitable for this application): https://online-converting.com/image/convert2bmp/
 - Awesome web-based ASCII art generator: https://manytools.org/hacker-tools/convert-images-to-ascii-art/
 - Calculate scaling factor retaining aspect ratio: https://stackoverflow.com/questions/6565703/math-algorithm-fit-image-to-screen-retain-aspect-ratio
+
+:)

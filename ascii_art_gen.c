@@ -51,8 +51,8 @@ SOFTWARE.
 #define SUPPORTED_MAX_H_RES		2000
 #define SUPPORTED_MAX_V_RES		2000
 
-#define NEW_MAX_WIDTH			200
-#define NEW_MAX_HEIGHT			200
+#define NEW_MAX_WIDTH			80
+#define NEW_MAX_HEIGHT			80
 
 typedef enum
 {
@@ -63,7 +63,7 @@ typedef enum
 }err_t;
 
 
-typedef struct 
+typedef struct
 {
 	uint8_t *header_array;
 	uint32_t size_bmp;
@@ -76,7 +76,7 @@ typedef struct
 }bmp_header_t;
 
 
-char get_char_for_greyscale(uint8_t p_greyscale);
+char get_char_for_grayscale(uint8_t p_grayscale);
 bmp_header_t get_bmp_header(FILE *p_bmp);
 err_t validate_header(bmp_header_t *p_header);
 void image_to_ascii(FILE *p_ascii, FILE *p_bmp, bmp_header_t *p_header);
@@ -91,10 +91,10 @@ int main()
 	// Opening input and output files
 	FILE *fl_bmp_img = fopen(str_input_file_name, "rb");
 	FILE *fl_ascii_out = fopen(str_output_file_name, "w");
-	
+
 	// Get the header info
 	bmp_header_t bmp_header = get_bmp_header(fl_bmp_img);
-	
+
 	// Display header info (not impotant)
 	printf("BMP Size (in Bytes): %d\n", bmp_header.size_bmp);
 	printf("Offset to start image: %d\n", bmp_header.img_data_offset);
@@ -102,7 +102,7 @@ int main()
 	printf("Bits per pixel: %d\n", bmp_header.bits_per_pixel);
 	printf("Compressiopn: %d\n", bmp_header.compression_type);
 	printf("Image Size with padding (in Bytes): %d\n", bmp_header.size_img_data);
-	
+
 	// Check if any error in header
 	err_t error_code = validate_header(&bmp_header);
 	if (error_code == 0)
@@ -114,7 +114,7 @@ int main()
 	{
 		printf("Error Code: %d\n", error_code);
 	}
-	
+
 	fclose(fl_bmp_img);
 	fclose(fl_ascii_out);
 
@@ -153,7 +153,7 @@ bmp_header_t get_bmp_header(FILE *p_bmp)
 
 	// Read only the file header into array
 	fread(bmp_header.header_array, sizeof(uint8_t), FILE_HEADER_SIZE, p_bmp);
-	
+
 	// Read file header's parameters
 	bmp_header.size_bmp = *(uint32_t *)&bmp_header.header_array[BMP_SIZE_OFFSET];
 	bmp_header.img_data_offset = *(uint32_t *)&bmp_header.header_array[IMG_START_OFFSET];
@@ -176,12 +176,12 @@ bmp_header_t get_bmp_header(FILE *p_bmp)
 }
 
 
-// Resize the image, make greyscale, and write the respective ascii chras in a text file
+// Resize the image, make grayscale, and write the respective ascii chras in a text file
 void image_to_ascii(FILE *p_ascii, FILE *p_bmp, bmp_header_t *p_header)
 {
 	// To avoid floating point in quotient, multiplying the dividend with 2^16 so that quotient can minimum be 1
 	float width_scaling_ratio = NEW_MAX_WIDTH / (float)p_header->img_width;
-	float height_scaling_ratio = NEW_MAX_HEIGHT / (float)p_header->img_height;	
+	float height_scaling_ratio = NEW_MAX_HEIGHT / (float)p_header->img_height;
 	// which ever is lower, is the best scaling ratio
 	float best_scaling_ratio = (width_scaling_ratio < height_scaling_ratio) ? width_scaling_ratio : height_scaling_ratio;
 	printf("\nscale w: %f   scale h: %f		best scale: %f\n", width_scaling_ratio, height_scaling_ratio, best_scaling_ratio);
@@ -197,7 +197,7 @@ void image_to_ascii(FILE *p_ascii, FILE *p_bmp, bmp_header_t *p_header)
 
 	// Must be multiple of 4. So, calculate the next multiple of 4
 	uint32_t img_row_bytes_with_padding = ((img_row_bytes + 3)/4)*4;
-	
+
 	// Entire image data size (in Bytes)
 	uint32_t img_data_bytes_with_padding = img_row_bytes_with_padding * abs(p_header->img_height);
 	uint32_t img_new_data_bytes = img_new_row_bytes * img_new_height;
@@ -220,7 +220,8 @@ void image_to_ascii(FILE *p_ascii, FILE *p_bmp, bmp_header_t *p_header)
 		uint16_t y_new = 0;
 		uint32_t src_subpixel_base = 0;
 		uint32_t dest_subpixel_base = 0;
-		uint8_t greyscale_value = 0;
+		uint8_t grayscale_value = 0;
+		uint8_t pixel = 0;
 
 		// Using Nearest Neighour algorithm to scale the image
 		// TODO: Bilinear Interpolation and Cubic Convolution
@@ -235,7 +236,7 @@ void image_to_ascii(FILE *p_ascii, FILE *p_bmp, bmp_header_t *p_header)
 					y_new = (img_new_height - i - 1) / best_scaling_ratio;
 				else if (p_header->img_height < 0)
 					y_new = i  / best_scaling_ratio;
-				else 
+				else
 					break;
 
 				// base address of source and destination subpixels (r, g, b)
@@ -245,17 +246,17 @@ void image_to_ascii(FILE *p_ascii, FILE *p_bmp, bmp_header_t *p_header)
 				// printf("j: %d, x new: %d  ", j, x_new);
 				// printf("i: %d, y new: %d\t Scaling: %f\n", i, y_new, best_scaling_ratio);
 
-				img_new_data[dest_subpixel_base + 0] = img_data_padded[src_subpixel_base + 0];	// R or B
-				img_new_data[dest_subpixel_base + 1] = img_data_padded[src_subpixel_base + 1];	// G
-				img_new_data[dest_subpixel_base + 2] = img_data_padded[src_subpixel_base + 2];	// B or R
+				uint8_t r = img_new_data[dest_subpixel_base + 0] = img_data_padded[src_subpixel_base + 0];	// R or B
+				uint8_t g = img_new_data[dest_subpixel_base + 1] = img_data_padded[src_subpixel_base + 1];	// G
+				uint8_t b = img_new_data[dest_subpixel_base + 2] = img_data_padded[src_subpixel_base + 2];	// B or R
 
-				// Average the RGB value to get greyscale value
-				greyscale_value = (img_new_data[dest_subpixel_base + 0] + 
-									img_new_data[dest_subpixel_base + 1] + 
-									img_new_data[dest_subpixel_base + 2]) / 3;
+
+				// Average the RGB value to get grayscale value
+				grayscale_value = (r + g + b) / 3;
+				pixel = grayscale_value;
 
 				// Store the respective character in the ASCII row buffer
-				ascii_row_buff[j] = get_char_for_greyscale(greyscale_value);
+				ascii_row_buff[j] = get_char_for_grayscale(pixel);
 			}
 			// Add newline and null termination characters
 			ascii_row_buff[img_new_width] = '\n';
@@ -269,7 +270,7 @@ void image_to_ascii(FILE *p_ascii, FILE *p_bmp, bmp_header_t *p_header)
 				// And also store in file
 				fprintf(p_ascii, "%s", ascii_row_buff);
 			}
-				
+
 		}
 	}
 	else
@@ -278,12 +279,16 @@ void image_to_ascii(FILE *p_ascii, FILE *p_bmp, bmp_header_t *p_header)
 	}
 }
 
+// Use one of the below LUTs:
 
-// Returns character based on greyscale value
-char get_char_for_greyscale(uint8_t p_greyscale)
+// const char ascii_ramp_lut[] = "$@B\%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]\?-_+~<>i!lI;:,\"^`\'. ";
+// const char ascii_ramp_lut[] = "@%#*+=-:. ";
+const char ascii_ramp_lut[] = "#@a:. ";
+
+// Returns character based on grayscale value
+char get_char_for_grayscale(uint8_t p_grayscale)
 {
-	//const char ascii_ramp_lut[70] = "$@B\%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]\?-_+~<>i!lI;:,\"^`\'. "; 
-	const char ascii_ramp_lut[10] = "@%#*+=-:. ";
-	uint8_t lut_index = ((float)p_greyscale / 255.0) * 9.0;
-	char out_char = ascii_ramp_lut[lut_index]; // cause we have 70 level of grey
+	uint8_t n = sizeof(ascii_ramp_lut) - 1;
+	uint8_t lut_index = p_grayscale * n / 256;
+	char out_char = ascii_ramp_lut[lut_index];
 }
